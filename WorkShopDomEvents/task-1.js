@@ -67,9 +67,6 @@ function solve() {
             ul.appendChild(li);
             liText.innerHTML=text;
             liButton.addEventListener('click',removeOnClick,false);
-
-            ul.appendChild(li);
-
         }
 
         function removeOnClick(ev){
