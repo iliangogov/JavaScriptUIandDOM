@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<select id="superheroes">
+    <option value="">Batman</option>
+</select>
+<script>
+   $(function(){
+       $("#superheroes").dropdown();
+   });
+
+   $.fn.dropdown=function(){
+       console.log($(this));
+   }
+</script>
+</body>
+</html>
