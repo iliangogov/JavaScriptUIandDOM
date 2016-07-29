@@ -2,20 +2,30 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title></title>
+    <title>LectionsTraining</title>
+    <script src="..\bower_components\jquery\dist\jquery.js"></script>
+    <script src="lection.js"></script>
+    <style>
+
+    </style>
 </head>
 <body>
-<select id="superheroes">
-    <option value="">Batman</option>
-</select>
+<div class="div">div1</div>
+<div class="div">div2</div>
 <script>
-   $(function(){
-       $("#superheroes").dropdown();
-   });
-
-   $.fn.dropdown=function(){
-       console.log($(this));
-   }
+    $('.button').on('click',function(){
+        var $content=$('p');
+        var $btn=$('.button');
+       // $content.toggleClass('content');
+        if($content.hasClass('content')){
+            $content.removeClass('content');
+            $btn.html('Hide');
+           // $btn.remove();
+        }else{
+            $content.addClass('content');
+            $btn.html('Show');
+        }
+    })
 </script>
 </body>
 </html>
