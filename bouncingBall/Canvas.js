@@ -2,8 +2,8 @@ var context;
 var myCanvas;
 var x=100;
 var y=200;
-var dx=5;
-var dy=5;
+var dx=3;
+var dy=3;
 var radius=20;
 var image;
 
