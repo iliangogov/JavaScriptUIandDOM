@@ -1,31 +1,152 @@
 <!DOCTYPE html>
-<html>
-<head lang="en">
-    <meta charset="UTF-8">
-    <title>LectionsTraining</title>
-    <script src="..\bower_components\jquery\dist\jquery.js"></script>
-    <script src="lection.js"></script>
-    <style>
-
-    </style>
-</head>
+<meta charset="utf-8">
+<style>
+    svg {
+        border:1px solid black;
+    }
+</style>
+<script src="//d3js.org/d3.v3.min.js"></script>
 <body>
-<div class="div">div1</div>
-<div class="div">div2</div>
 <script>
-    $('.button').on('click',function(){
-        var $content=$('p');
-        var $btn=$('.button');
-       // $content.toggleClass('content');
-        if($content.hasClass('content')){
-            $content.removeClass('content');
-            $btn.html('Hide');
-           // $btn.remove();
-        }else{
-            $content.addClass('content');
-            $btn.html('Show');
+    var timescale = 800.;
+    var width = 300,
+            height = 300,
+            radius = 0.15;
+    var svg = d3.select("body").append("svg")
+            .attr("class", "disk")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("viewBox", "0 0 1 1");
+
+    var c10 = d3.scale.category10();
+
+    var init_data = [[radius, 0.25, 0.25, Math.random() - 0.5, Math.random() - 0.5],
+        [radius, 0.75, 0.25, Math.random() - 0.5, Math.random() - 0.5],
+        [radius, 0.25, 0.75, Math.random() - 0.5, Math.random() - 0.5],
+        [radius, 0.75, 0.75, Math.random() - 0.5, Math.random() - 0.5]
+    ];
+
+    var circles = svg.selectAll(".disk")
+            .data(init_data)
+            .enter().append("circle")
+            .attr("r", function(d) { return d[0] })
+            .attr("cx", function(d) { return d[1] })
+            .attr("cy", function(d) { return d[2] })
+            .attr("fill", c10);
+
+    function next_event(circles) {
+        var nevent = [Infinity];
+        var data = circles.data();
+        for (var i = 0; i < data.length; i++) {
+            var r = data[i][0],
+                    x = data[i][1],
+                    y = data[i][2],
+                    dx = data[i][3],
+                    dy = data[i][4];
+            var dt;
+            // x-wall
+            dt = ( (dx >= 0 ? (1. - r) : r) - x ) / dx;
+            if (dt < nevent[0])
+                nevent = [dt, "wall", "x", i];
+            // y-wall
+            dt = ( (dy >= 0 ? (1. - r) : r) - y ) / dy;
+            if (dt < nevent[0])
+                nevent = [dt, "wall", "y", i];
+            for (var j = i + 1; j < data.length; j++) {
+                // pair collisions
+                var x2 = data[j][1],
+                        y2 = data[j][2],
+                        dx2 = data[j][3],
+                        dy2 = data[j][4];
+                var diffx = x2 - x,
+                        diffy = y2 - y,
+                        diffdx = dx2 - dx,
+                        diffdy = dy2 - dy;
+                var scalarprod = (diffx * diffdx + diffy * diffdy);
+                var gamma = Math.pow(scalarprod, 2)
+                        - (diffdx * diffdx + diffdy * diffdy) * (diffx * diffx + diffy * diffy - 4 * Math.pow(r, 2));
+                if ( gamma >= 0 && scalarprod <= 0 ) {
+                    var tpair = -( scalarprod + Math.sqrt(gamma) ) / (diffdx * diffdx + diffdy * diffdy);
+                    if (tpair < nevent[0] ) {
+                        nevent = [tpair, "pair", i, j];
+                    }
+                }
+            }
         }
-    })
+        return nevent
+    }
+
+
+    function update(circles, nevent) {
+        circles.each(function (d, i) {
+            d[1] = d[1] + nevent[0] * d[3];
+            d[2] = d[2] + nevent[0] * d[4];
+        });
+        if (nevent[1] == "wall") {
+            circles.each(function (d, i) {
+                if (i == nevent[3]){
+                    switch(nevent[2]) {
+                        case "x":
+                            d[3] *= -1;
+                            break;
+                        case "y":
+                            d[4] *= -1;
+                            break;
+                    }
+                }
+            });
+        } else if (nevent[1] == "pair") {
+            var i = nevent[2],
+                    j = nevent[3];
+            var data = circles.data();
+            var x = data[i][1],
+                    y = data[i][2],
+                    dx = data[i][3],
+                    dy = data[i][4];
+            var x2 = data[j][1],
+                    y2 = data[j][2],
+                    dx2 = data[j][3],
+                    dy2 = data[j][4];
+            var diffx = x2 - x,
+                    diffy = y2 - y,
+                    diffdx = dx2 - dx,
+                    diffdy = dy2 - dy;
+            var ex = diffx / Math.sqrt(diffx*diffx + diffy*diffy),
+                    ey = diffy / Math.sqrt(diffx*diffx + diffy*diffy);
+
+            circles.each(function (d, k) {
+                if (k == i) {
+                    d[3] += ex * (diffdx * ex + diffdy * ey);
+                    d[4] += ey * (diffdx * ex + diffdy * ey);
+                } else if (k == j) {
+                    d[3] -= ex * (diffdx * ex + diffdy * ey);
+                    d[4] -= ey * (diffdx * ex + diffdy * ey);
+                }
+            });
+        }
+    }
+
+    function endall(transition, callback) {
+        if (transition.size() === 0) { callback() }
+        var n = 0;
+        transition
+                .each(function() { ++n; })
+                .each("end", function() { if (!--n) callback.apply(this, arguments); });
+    }
+
+    function loop(circles){
+        var nevent = next_event(circles);
+        trans = circles.transition().duration(nevent[0] * timescale).ease("linear")
+                .attr("cx", function(d){
+                    return d[1] + nevent[0] * d[3];
+                })
+                .attr("cy", function(d){
+                    return d[2] + nevent[0] * d[4];
+                })
+                .call(endall, function() { update(circles, nevent); loop(circles) })
+    }
+    loop(circles);
+
+
 </script>
 </body>
-</html>
