@@ -39,20 +39,21 @@
 
     });
 
-function run() {
-    context.clearRect(0, 0, width, height);
-    for(b of balls) {
-        draw(b);
-        move(b);
-    }
+    function run() {
+        context.clearRect(0, 0, width, height);
+        for(b of balls) {
+           draw(b);
+           move(b);
+        }
         window.requestAnimationFrame(run);
+    }
 
-}
     function draw(ball) {
         context.beginPath();
         context.drawImage(ball.img, ball.x - radius, ball.y - radius, radius*2, radius*2);
         context.closePath();
     }
+
     function move(ball) {
         if (ball.x <= radius || ball.x >= width - radius) ball.dx = -ball.dx;
         if (ball.y <= radius || ball.y >= height - radius) ball.dy = -ball.dy;
@@ -65,6 +66,7 @@ function run() {
         ball.x += ball.dx;
         ball.y += ball.dy;
     }
+
     function isBallCollidingWith(ball,other){
         if(other === ball){
             return false;
