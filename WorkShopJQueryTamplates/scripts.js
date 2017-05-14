@@ -9,8 +9,11 @@ $.fn.gallery = function (collumns) {
         var $imageContainers = $galeryList.find('.image-container');
         var $selectedContainer = $('.selected');
         var $midleImage = $selectedContainer.find('#current-image');
+        $midleImage.addClass('current-image');
         var $previousImage = $selectedContainer.find('#previous-image');
+        $previousImage.addClass('previous-image');
         var $nextImage = $selectedContainer.find('#next-image');
+        $nextImage.addClass('next-image')
         var $disabledDiv = $('<div />');
         $disabledDiv.appendTo($gallery);
         $disabledDiv.addClass('gallery');
